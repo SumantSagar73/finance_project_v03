@@ -1,0 +1,374 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-4">
+        <div class="balance-card">
+            <p>Total Income</p>
+            <h3>₹{{ "%.2f"|format(total_income) }}</h3>
+            <i class="bi bi-arrow-up-circle-fill"></i>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="balance-card" style="background: linear-gradient(135deg, #e74c3c, #c0392b);">
+            <p>Total Expenses</p>
+            <h3>₹{{ "%.2f"|format(total_expenses) }}</h3>
+            <i class="bi bi-arrow-down-circle-fill"></i>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="balance-card" style="background: linear-gradient(135deg, {% if balance >= 0 %}#27ae60, #2ecc71{% else %}#f1c40f, #f39c12{% endif %});">
+            <p>Balance</p>
+            <h3>₹{{ "%.2f"|format(balance) }}</h3>
+            <i class="bi bi-wallet2"></i>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Section -->
+<div class="row mt-4">
+    <!-- Income vs Expenses Chart -->
+    <div class="col-md-6">
+        <div class="card chart-card">
+            <div class="card-header">
+                <h5><i class="bi bi-bar-chart"></i> Income vs Expenses</h5>
+                <div class="btn-group">
+                    <button class="btn btn-sm btn-light" onclick="updateChartPeriod('incomeExpensesChart', 'week')">Week</button>
+                    <button class="btn btn-sm btn-light active" onclick="updateChartPeriod('incomeExpensesChart', 'month')">Month</button>
+                    <button class="btn btn-sm btn-light" onclick="updateChartPeriod('incomeExpensesChart', 'year')">Year</button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="incomeExpensesChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Expense Categories Chart -->
+    <div class="col-md-6">
+        <div class="card chart-card">
+            <div class="card-header">
+                <h5><i class="bi bi-pie-chart"></i> Expense Categories</h5>
+                <div class="btn-group">
+                    <button class="btn btn-sm btn-light active" onclick="updateChartPeriod('expenseCategoriesChart', 'month')">Month</button>
+                    <button class="btn btn-sm btn-light" onclick="updateChartPeriod('expenseCategoriesChart', 'year')">Year</button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="expenseCategoriesChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Monthly Trend Chart -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card chart-card">
+            <div class="card-header">
+                <h5><i class="bi bi-graph-up"></i> Monthly Trend</h5>
+                <div class="btn-group">
+                    <button class="btn btn-sm btn-light" onclick="updateChartPeriod('monthlyTrendChart', '3months')">3 Months</button>
+                    <button class="btn btn-sm btn-light active" onclick="updateChartPeriod('monthlyTrendChart', '6months')">6 Months</button>
+                    <button class="btn btn-sm btn-light" onclick="updateChartPeriod('monthlyTrendChart', 'year')">Year</button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="monthlyTrendChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Transactions Table -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-list-ul"></i> Recent Transactions</h5>
+                <a href="{{ url_for('main.add_transaction') }}" class="btn btn-light btn-sm">
+                    <i class="bi bi-plus-circle"></i> Add Transaction
+                </a>
+            </div>
+            <div class="card-body">
+                <div class="transaction-list">
+                    {% if transactions %}
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Description</th>
+                                        <th>Category</th>
+                                        <th>Type</th>
+                                        <th>Amount</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for transaction in transactions %}
+                                        <tr>
+                                            <td>{{ transaction.date.strftime('%Y-%m-%d') }}</td>
+                                            <td>{{ transaction.description }}</td>
+                                            <td>
+                                                <span class="badge bg-secondary">
+                                                    {{ transaction.category }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <span class="badge {% if transaction.type == 'income' %}bg-success{% else %}bg-danger{% endif %}">
+                                                    {{ transaction.type }}
+                                                </span>
+                                            </td>
+                                            <td class="{{ transaction.type }}">
+                                                ₹{{ "%.2f"|format(transaction.amount) }}
+                                            </td>
+                                            <td>
+                                                <a href="{{ url_for('main.delete_transaction', id=transaction.id) }}" 
+                                                   class="btn btn-danger btn-sm"
+                                                   onclick="return confirm('Are you sure you want to delete this transaction?')">
+                                                    <i class="bi bi-trash"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="bi bi-inbox display-1 text-muted"></i>
+                            <p class="text-muted mt-3">No transactions yet.</p>
+                            <a href="{{ url_for('main.add_transaction') }}" class="btn btn-primary">
+                                <i class="bi bi-plus-circle"></i> Add Your First Transaction
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart Initialization Script -->
+<script>
+// Get chart data from backend
+const chartData = {{ chart_data|tojson|safe }};
+
+// Helper function to format data for charts
+function formatChartData(data, type) {
+    if (type === 'incomeExpenses') {
+        return {
+            labels: Object.keys(data),
+            income: Object.values(data).map(d => d.income),
+            expenses: Object.values(data).map(d => d.expenses)
+        };
+    } else if (type === 'expenseCategories') {
+        return {
+            labels: Object.keys(data),
+            data: Object.values(data)
+        };
+    } else if (type === 'monthlyTrend') {
+        return {
+            labels: Object.keys(data),
+            income: Object.values(data).map(d => d.income),
+            expenses: Object.values(data).map(d => d.expenses),
+            balance: Object.values(data).map(d => d.balance)
+        };
+    }
+}
+
+// Initialize charts
+document.addEventListener('DOMContentLoaded', function() {
+    // Income vs Expenses Chart
+    const incomeExpensesCtx = document.getElementById('incomeExpensesChart').getContext('2d');
+    const incomeExpensesData = formatChartData(chartData.incomeExpenses.month, 'incomeExpenses');
+    window.incomeExpensesChart = new Chart(incomeExpensesCtx, {
+        type: 'bar',
+        data: {
+            labels: incomeExpensesData.labels,
+            datasets: [
+                {
+                    label: 'Income',
+                    data: incomeExpensesData.income,
+                    backgroundColor: '#27ae60',
+                    borderColor: '#27ae60',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Expenses',
+                    data: incomeExpensesData.expenses,
+                    backgroundColor: '#e74c3c',
+                    borderColor: '#e74c3c',
+                    borderWidth: 1
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return '₹' + value.toLocaleString();
+                        }
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.dataset.label + ': ₹' + context.raw.toLocaleString();
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // Expense Categories Chart
+    const expenseCategoriesCtx = document.getElementById('expenseCategoriesChart').getContext('2d');
+    const expenseCategoriesData = formatChartData(chartData.expenseCategories.month, 'expenseCategories');
+    window.expenseCategoriesChart = new Chart(expenseCategoriesCtx, {
+        type: 'doughnut',
+        data: {
+            labels: expenseCategoriesData.labels,
+            datasets: [{
+                data: expenseCategoriesData.data,
+                backgroundColor: [
+                    '#3498db', '#e74c3c', '#f1c40f', '#2ecc71', '#9b59b6', '#1abc9c', '#34495e'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'right',
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const value = context.raw;
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = Math.round((value / total) * 100);
+                            return context.label + ': ₹' + value.toLocaleString() + ' (' + percentage + '%)';
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // Monthly Trend Chart
+    const monthlyTrendCtx = document.getElementById('monthlyTrendChart').getContext('2d');
+    const monthlyTrendData = formatChartData(chartData.monthlyTrend['6months'], 'monthlyTrend');
+    window.monthlyTrendChart = new Chart(monthlyTrendCtx, {
+        type: 'line',
+        data: {
+            labels: monthlyTrendData.labels,
+            datasets: [
+                {
+                    label: 'Income',
+                    data: monthlyTrendData.income,
+                    backgroundColor: 'rgba(39, 174, 96, 0.2)',
+                    borderColor: '#27ae60',
+                    borderWidth: 2,
+                    tension: 0.3,
+                    fill: true
+                },
+                {
+                    label: 'Expenses',
+                    data: monthlyTrendData.expenses,
+                    backgroundColor: 'rgba(231, 76, 60, 0.2)',
+                    borderColor: '#e74c3c',
+                    borderWidth: 2,
+                    tension: 0.3,
+                    fill: true
+                },
+                {
+                    label: 'Balance',
+                    data: monthlyTrendData.balance,
+                    backgroundColor: 'rgba(52, 152, 219, 0.2)',
+                    borderColor: '#3498db',
+                    borderWidth: 2,
+                    tension: 0.3,
+                    fill: true
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return '₹' + value.toLocaleString();
+                        }
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.dataset.label + ': ₹' + context.raw.toLocaleString();
+                        }
+                    }
+                }
+            }
+        }
+    });
+});
+
+// Function to update chart period
+function updateChartPeriod(chartId, period) {
+    // Update button states
+    const buttons = document.querySelectorAll(`#${chartId.replace('Chart', '')} .btn-group .btn`);
+    buttons.forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+    
+    // Update chart data based on period
+    if (chartId === 'incomeExpensesChart') {
+        const data = formatChartData(chartData.incomeExpenses[period], 'incomeExpenses');
+        window.incomeExpensesChart.data.labels = data.labels;
+        window.incomeExpensesChart.data.datasets[0].data = data.income;
+        window.incomeExpensesChart.data.datasets[1].data = data.expenses;
+        window.incomeExpensesChart.update();
+    } else if (chartId === 'expenseCategoriesChart') {
+        const data = formatChartData(chartData.expenseCategories[period], 'expenseCategories');
+        window.expenseCategoriesChart.data.labels = data.labels;
+        window.expenseCategoriesChart.data.datasets[0].data = data.data;
+        window.expenseCategoriesChart.update();
+    } else if (chartId === 'monthlyTrendChart') {
+        const data = formatChartData(chartData.monthlyTrend[period], 'monthlyTrend');
+        window.monthlyTrendChart.data.labels = data.labels;
+        window.monthlyTrendChart.data.datasets[0].data = data.income;
+        window.monthlyTrendChart.data.datasets[1].data = data.expenses;
+        window.monthlyTrendChart.data.datasets[2].data = data.balance;
+        window.monthlyTrendChart.update();
+    }
+}
+</script>
+{% endblock %} 
