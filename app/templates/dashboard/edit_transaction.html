@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Transaction{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-2xl mx-auto">
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-2xl font-bold mb-6">Edit Transaction</h2>
+            <form method="POST">
+                {{ form.hidden_tag() }}
+                
+                <div class="mb-4">
+                    {{ form.date.label(class="block text-gray-700 text-sm font-bold mb-2") }}
+                    {{ form.date(class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline") }}
+                </div>
+
+                <div class="mb-4">
+                    {{ form.description.label(class="block text-gray-700 text-sm font-bold mb-2") }}
+                    {{ form.description(class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline") }}
+                </div>
+
+                <div class="mb-4">
+                    {{ form.amount.label(class="block text-gray-700 text-sm font-bold mb-2") }}
+                    {{ form.amount(class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline") }}
+                </div>
+
+                <div class="mb-4">
+                    {{ form.type.label(class="block text-gray-700 text-sm font-bold mb-2") }}
+                    {{ form.type(class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline") }}
+                </div>
+
+                <div class="mb-4">
+                    {{ form.category.label(class="block text-gray-700 text-sm font-bold mb-2") }}
+                    {{ form.category(class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline") }}
+                </div>
+
+                <div class="flex items-center justify-between">
+                    <a href="{{ url_for('main.dashboard') }}" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                        Cancel
+                    </a>
+                    {{ form.submit(class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline") }}
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Adjust amount to be positive when type is expense
+    document.getElementById('type').addEventListener('change', function() {
+        const amountInput = document.getElementById('amount');
+        if (this.value === 'expense' && parseFloat(amountInput.value) < 0) {
+            amountInput.value = Math.abs(parseFloat(amountInput.value));
+        }
+    });
+</script>
+{% endblock %} 
