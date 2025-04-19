@@ -10,4 +10,10 @@ boto3==1.34.34
 psycopg2-binary==2.9.9
 python-jose==3.3.0
 requests==2.31.0
-watchtower==3.0.1  # For CloudWatch logging 
+watchtower==3.0.1  # For CloudWatch logging
+XlsxWriter==3.2.2
+Flask-Uploads==0.2.1
+black==23.12.1
+flake8==7.0.0
+pandas==2.2.0  # Added for data manipulation in reports
+reportlab==4.1.0  # Added for PDF generation in reports 

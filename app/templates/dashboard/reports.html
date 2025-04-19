@@ -1,276 +1,381 @@
-{% extends "base.html" %}
-
-{% block title %}Financial Reports{% endblock %}
-
-{% block content %}
-<div class="container mx-auto px-4 py-8">
-    <!-- Page Header -->
-    <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
-        <div class="flex items-center justify-between">
-            <div>
-                <h1 class="text-2xl font-semibold text-gray-900">Financial Reports</h1>
-                <p class="text-gray-500">Comprehensive analysis of your financial data</p>
-            </div>
-            <div class="flex gap-2">
-                <a href="{{ url_for('main.download_report', format='pdf', start_date=start_date, end_date=end_date) }}" 
-                   class="inline-flex items-center px-4 py-2 border border-blue-500 text-blue-500 rounded-md hover:bg-blue-50">
-                    <i class="fas fa-file-pdf mr-2"></i>Export PDF
-                </a>
-                <a href="{{ url_for('main.download_report', format='excel', start_date=start_date, end_date=end_date) }}" 
-                   class="inline-flex items-center px-4 py-2 border border-green-500 text-green-500 rounded-md hover:bg-green-50">
-                    <i class="fas fa-file-excel mr-2"></i>Export Excel
-                </a>
-            </div>
-        </div>
+{% extends "base.html" %} {% block title %}Financial Reports{% endblock %} {%
+block content %}
+<div class="container-fluid py-4">
+  <!-- Page Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h1 class="h3 mb-0">Financial Reports</h1>
+      <p class="text-muted">Comprehensive analysis of your financial data</p>
     </div>
+    <div class="d-flex gap-2">
+      <a
+        href="{{ url_for('main.download_report', format='pdf', start_date=request.args.get('start_date', ''), end_date=request.args.get('end_date', '')) }}"
+        class="btn btn-outline-danger"
+      >
+        <i class="fas fa-file-pdf me-2"></i> Export PDF
+      </a>
+      <a
+        href="{{ url_for('main.download_report', format='excel', start_date=request.args.get('start_date', ''), end_date=request.args.get('end_date', '')) }}"
+        class="btn btn-outline-success"
+      >
+        <i class="fas fa-file-excel me-2"></i> Export Excel
+      </a>
+    </div>
+  </div>
 
-    <!-- Date Filter -->
-    <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
-        <form method="GET" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-                <label for="start_date" class="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <i class="fas fa-calendar text-gray-400"></i>
-                    </div>
-                    <input type="date" class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md" 
-                           id="start_date" name="start_date" value="{{ start_date }}">
+  <!-- Date Filter -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <form method="GET" class="row g-3">
+        <div class="col-md-4">
+          <label for="start_date" class="form-label">Start Date</label>
+          <input
+            type="date"
+            class="form-control"
+            id="start_date"
+            name="start_date"
+            value="{{ request.args.get('start_date', '') }}"
+          />
+        </div>
+        <div class="col-md-4">
+          <label for="end_date" class="form-label">End Date</label>
+          <input
+            type="date"
+            class="form-control"
+            id="end_date"
+            name="end_date"
+            value="{{ request.args.get('end_date', '') }}"
+          />
+        </div>
+        <div class="col-md-4 d-flex align-items-end">
+          <div class="d-grid gap-2 w-100">
+            <button type="submit" class="btn btn-primary">
+              <i class="fas fa-filter me-2"></i> Apply Filter
+            </button>
+            <a
+              href="{{ url_for('main.reports') }}"
+              class="btn btn-outline-secondary"
+            >
+              <i class="fas fa-undo me-2"></i> Reset
+            </a>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Monthly Summary -->
+  <div class="row g-4 mb-4">
+    <div class="col-md-4">
+      <div class="card h-100">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h5 class="card-title text-muted mb-0">Total Income</h5>
+            <span class="badge bg-success">
+              <i class="fas fa-arrow-up"></i>
+            </span>
+          </div>
+          <h2 class="mb-0 text-success">₹{{ "%.2f"|format(total_income) }}</h2>
+          <p class="text-muted small mt-2 mb-0">For selected period</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card h-100">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h5 class="card-title text-muted mb-0">Total Expenses</h5>
+            <span class="badge bg-danger">
+              <i class="fas fa-arrow-down"></i>
+            </span>
+          </div>
+          <h2 class="mb-0 text-danger">₹{{ "%.2f"|format(total_expenses) }}</h2>
+          <p class="text-muted small mt-2 mb-0">For selected period</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card h-100">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h5 class="card-title text-muted mb-0">Net Savings</h5>
+            <span
+              class="badge {% if balance >= 0 %}bg-success{% else %}bg-danger{% endif %}"
+            >
+              <i
+                class="fas fa-{% if balance >= 0 %}arrow-up{% else %}arrow-down{% endif %}"
+              ></i>
+            </span>
+          </div>
+          <h2
+            class="mb-0 {% if balance >= 0 %}text-success{% else %}text-danger{% endif %}"
+          >
+            ₹{{ "%.2f"|format(balance) }}
+          </h2>
+          <p class="text-muted small mt-2 mb-0">For selected period</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Spending Breakdown & Income Sources -->
+  <div class="row g-4 mb-4">
+    <div class="col-md-6">
+      <div class="card h-100">
+        <div class="card-header">
+          <h5 class="card-title mb-0">Spending Breakdown</h5>
+        </div>
+        <div class="card-body">
+          <div
+            class="chart-container"
+            style="position: relative; height: 250px"
+          >
+            <canvas id="expenseChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card h-100">
+        <div class="card-header">
+          <h5 class="card-title mb-0">Income Sources</h5>
+        </div>
+        <div class="card-body">
+          <div
+            class="chart-container"
+            style="position: relative; height: 250px"
+          >
+            <canvas id="incomeChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Trends Over Time -->
+  <div class="card mb-4">
+    <div class="card-header">
+      <h5 class="card-title mb-0">Financial Trends</h5>
+    </div>
+    <div class="card-body">
+      <div class="chart-container" style="position: relative; height: 300px">
+        <canvas id="trendChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Top Spending Categories -->
+  <div class="card mb-4">
+    <div class="card-header">
+      <h5 class="card-title mb-0">Top Spending Categories</h5>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover mb-0">
+          <thead>
+            <tr>
+              <th>Category</th>
+              <th>Amount</th>
+              <th>Percentage</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for category, data in expense_categories.items() %}
+            <tr>
+              <td>
+                <span class="badge bg-danger">{{ category }}</span>
+              </td>
+              <td class="text-danger">₹{{ "%.2f"|format(data.amount) }}</td>
+              <td>
+                <div class="progress" style="height: 20px">
+                  <div
+                    class="progress-bar bg-danger"
+                    role="progressbar"
+                    style="width: {{ data.percentage }}%"
+                    aria-valuenow="{{ data.percentage }}"
+                    aria-valuemin="0"
+                    aria-valuemax="100"
+                  >
+                    {{ "%.1f"|format(data.percentage) }}%
+                  </div>
                 </div>
-            </div>
-            <div>
-                <label for="end_date" class="block text-sm font-medium text-gray-700 mb-1">End Date</label>
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <i class="fas fa-calendar text-gray-400"></i>
-                    </div>
-                    <input type="date" class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md" 
-                           id="end_date" name="end_date" value="{{ end_date }}">
-                </div>
-            </div>
-            <div class="flex items-end gap-2">
-                <button type="submit" class="flex-1 inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700">
-                    <i class="fas fa-filter mr-2"></i>Apply Filter
-                </button>
-                <a href="{{ url_for('main.reports') }}" class="inline-flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50">
-                    <i class="fas fa-redo mr-2"></i>Reset
-                </a>
-            </div>
-        </form>
+              </td>
+              <td>
+                {% if data.percentage > 30 %}
+                <span class="badge bg-warning">
+                  <i class="fas fa-exclamation-triangle me-1"></i> High
+                </span>
+                {% else %}
+                <span class="badge bg-success">
+                  <i class="fas fa-check me-1"></i> Normal
+                </span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
     </div>
+  </div>
 
-    <!-- Summary Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-        <div class="bg-white rounded-lg shadow-sm p-6">
-            <h3 class="text-lg font-medium text-gray-700 text-center">Total Income</h3>
-            <p class="text-3xl font-bold text-green-600 text-center">₹{{ "%.2f"|format(total_income) }}</p>
-        </div>
-        <div class="bg-white rounded-lg shadow-sm p-6">
-            <h3 class="text-lg font-medium text-gray-700 text-center">Total Expenses</h3>
-            <p class="text-3xl font-bold text-red-600 text-center">₹{{ "%.2f"|format(total_expenses) }}</p>
-        </div>
-        <div class="bg-white rounded-lg shadow-sm p-6">
-            <h3 class="text-lg font-medium text-gray-700 text-center">Net Savings</h3>
-            <p class="text-3xl font-bold {% if total_income - total_expenses >= 0 %}text-green-600{% else %}text-red-600{% endif %} text-center">
-                ₹{{ "%.2f"|format(total_income - total_expenses) }}
-            </p>
-        </div>
+  <!-- Alerts & Insights -->
+  <div class="card mb-4">
+    <div class="card-header">
+      <h5 class="card-title mb-0">Financial Insights</h5>
     </div>
-
-    <!-- Charts Section -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-        <div class="bg-white rounded-lg shadow-sm">
-            <div class="p-4 border-b border-gray-200">
-                <h5 class="text-lg font-medium text-gray-900">Expense Distribution</h5>
-            </div>
-            <div class="p-4">
-                <canvas id="expenseChart" height="250"></canvas>
-            </div>
+    <div class="card-body">
+      <div class="row g-4">
+        {% if total_expenses > total_income * 0.8 %}
+        <div class="col-md-6">
+          <div class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            Your expenses are {{ "%.1f"|format((total_expenses / total_income) *
+            100) }}% of your income. Consider reducing expenses.
+          </div>
         </div>
-        <div class="bg-white rounded-lg shadow-sm">
-            <div class="p-4 border-b border-gray-200">
-                <h5 class="text-lg font-medium text-gray-900">Monthly Trends</h5>
-            </div>
-            <div class="p-4">
-                <canvas id="trendChart" height="250"></canvas>
-            </div>
+        {% endif %} {% for category, data in expense_categories.items() %} {% if
+        data.percentage > 30 %}
+        <div class="col-md-6">
+          <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i>
+            High spending in {{ category }}: {{ "%.1f"|format(data.percentage)
+            }}% of total expenses
+          </div>
         </div>
+        {% endif %} {% endfor %}
+      </div>
     </div>
-
-    <!-- Category Analysis -->
-    <div class="bg-white rounded-lg shadow-sm mb-6">
-        <div class="p-4 border-b border-gray-200">
-            <h5 class="text-lg font-medium text-gray-900">Category Analysis</h5>
-        </div>
-        <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
-                    <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Percentage</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="width: 200px;">Progress</th>
-                    </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
-                    {% for category, data in income_categories.items() %}
-                    <tr class="hover:bg-gray-50">
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ category }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                                Income
-                            </span>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900">₹{{ "%.2f"|format(data.amount) }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900">{{ "%.1f"|format(data.percentage) }}%</td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="w-full bg-gray-200 rounded-full h-2">
-                                <div class="bg-green-600 h-2 rounded-full" style="width: {{ data.percentage }}%"></div>
-                            </div>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                    {% for category, data in expense_categories.items() %}
-                    <tr class="hover:bg-gray-50">
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ category }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
-                                Expense
-                            </span>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900">₹{{ "%.2f"|format(data.amount) }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900">{{ "%.1f"|format(data.percentage) }}%</td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="w-full bg-gray-200 rounded-full h-2">
-                                <div class="bg-red-600 h-2 rounded-full" style="width: {{ data.percentage }}%"></div>
-                            </div>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- Recent Transactions -->
-    <div class="bg-white rounded-lg shadow-sm">
-        <div class="p-4 border-b border-gray-200">
-            <h5 class="text-lg font-medium text-gray-900">Recent Transactions</h5>
-        </div>
-        <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
-                    <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Receipt</th>
-                    </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
-                    {% for transaction in transactions %}
-                    <tr class="hover:bg-gray-50">
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ transaction.date.strftime('%Y-%m-%d') }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ transaction.description }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ transaction.category }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {% if transaction.type == 'income' %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
-                                {{ transaction.type }}
-                            </span>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-right {% if transaction.type == 'income' %}text-green-600{% else %}text-red-600{% endif %}">
-                            ₹{{ "%.2f"|format(transaction.amount) }}
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {% if transaction.receipt_id %}
-                            <a href="{{ url_for('main.view_receipt', receipt_id=transaction.receipt_id) }}" 
-                               class="inline-flex items-center px-2.5 py-1.5 border border-blue-300 text-sm font-medium rounded text-blue-700 bg-white hover:bg-blue-50">
-                                <i class="fas fa-file-invoice"></i>
-                            </a>
-                            {% else %}
-                            <span class="text-gray-400">No receipt</span>
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
+  </div>
 </div>
 
-{% block scripts %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    // Prepare chart data
-    const expenseLabels = {{ category_data.labels|tojson|safe }};
-    const expenseData = {{ category_data.data|tojson|safe }};
-    const monthlyLabels = {{ monthly_data.labels|tojson|safe }};
-    const monthlyIncome = {{ monthly_data.income|tojson|safe }};
-    const monthlyExpenses = {{ monthly_data.expenses|tojson|safe }};
+  document.addEventListener('DOMContentLoaded', function() {
+      // Expense Distribution Chart
+      const expenseCtx = document.getElementById('expenseChart');
+      if (expenseCtx) {
+          new Chart(expenseCtx, {
+              type: 'doughnut',
+              data: {
+                  labels: {{ category_data.labels|tojson }},
+                  datasets: [{
+                      data: {{ category_data.data|tojson }},
+                      backgroundColor: [
+                          '#10B981', '#3B82F6', '#F59E0B', '#EF4444', '#6B7280',
+                          '#8B5CF6', '#EC4899', '#14B8A6', '#F97316', '#6366F1'
+                      ]
+                  }]
+              },
+              options: {
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: {
+                      legend: {
+                          position: 'right'
+                      },
+                      tooltip: {
+                          callbacks: {
+                              label: function(context) {
+                                  const value = context.raw;
+                                  const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                  const percentage = ((value / total) * 100).toFixed(1);
+                                  return `₹${value.toFixed(2)} (${percentage}%)`;
+                              }
+                          }
+                      }
+                  }
+              }
+          });
+      }
 
-    // Expense Distribution Chart
-    const expenseCtx = document.getElementById('expenseChart').getContext('2d');
-    new Chart(expenseCtx, {
-        type: 'doughnut',
-        data: {
-            labels: expenseLabels,
-            datasets: [{
-                data: expenseData,
-                backgroundColor: [
-                    '#10B981', '#3B82F6', '#F59E0B', '#EF4444', '#6B7280',
-                    '#8B5CF6', '#EC4899', '#14B8A6', '#F97316', '#6366F1'
-                ]
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'right'
-                }
-            }
-        }
-    });
+      // Income Sources Chart
+      const incomeCtx = document.getElementById('incomeChart');
+      if (incomeCtx) {
+          new Chart(incomeCtx, {
+              type: 'pie',
+              data: {
+                  labels: {{ income_categories.keys()|list|tojson }},
+                  datasets: [{
+                      data: {{ income_categories.values()|map(attribute='amount')|list|tojson }},
+                      backgroundColor: [
+                          '#10B981', '#3B82F6', '#F59E0B', '#EF4444', '#6B7280'
+                      ]
+                  }]
+              },
+              options: {
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: {
+                      legend: {
+                          position: 'right'
+                      },
+                      tooltip: {
+                          callbacks: {
+                              label: function(context) {
+                                  const value = context.raw;
+                                  const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                  const percentage = ((value / total) * 100).toFixed(1);
+                                  return `₹${value.toFixed(2)} (${percentage}%)`;
+                              }
+                          }
+                      }
+                  }
+              }
+          });
+      }
 
-    // Monthly Trends Chart
-    const trendCtx = document.getElementById('trendChart').getContext('2d');
-    new Chart(trendCtx, {
-        type: 'line',
-        data: {
-            labels: monthlyLabels,
-            datasets: [{
-                label: 'Income',
-                data: monthlyIncome,
-                borderColor: '#10B981',
-                backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                fill: true
-            }, {
-                label: 'Expenses',
-                data: monthlyExpenses,
-                borderColor: '#EF4444',
-                backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                fill: true
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'top'
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true
-                }
-            }
-        }
-    });
+      // Monthly Trends Chart
+      const trendCtx = document.getElementById('trendChart');
+      if (trendCtx) {
+          const monthlyData = {{ monthly_stats|tojson }};
+          const labels = Object.keys(monthlyData).sort();
+          const incomeData = labels.map(month => monthlyData[month].income);
+          const expenseData = labels.map(month => monthlyData[month].expense);
+
+          new Chart(trendCtx, {
+              type: 'line',
+              data: {
+                  labels: labels,
+                  datasets: [{
+                      label: 'Income',
+                      data: incomeData,
+                      borderColor: '#10B981',
+                      backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                      fill: true
+                  }, {
+                      label: 'Expenses',
+                      data: expenseData,
+                      borderColor: '#EF4444',
+                      backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                      fill: true
+                  }]
+              },
+              options: {
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  scales: {
+                      y: {
+                          beginAtZero: true,
+                          ticks: {
+                              callback: function(value) {
+                                  return '₹' + value.toFixed(2);
+                              }
+                          }
+                      }
+                  },
+                  plugins: {
+                      tooltip: {
+                          callbacks: {
+                              label: function(context) {
+                                  return context.dataset.label + ': ₹' + context.raw.toFixed(2);
+                              }
+                          }
+                      }
+                  }
+              }
+          });
+      }
+  });
 </script>
-{% endblock %}
 {% endblock %}
